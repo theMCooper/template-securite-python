@@ -1,6 +1,8 @@
+from scapy.interfaces import ifaces
+
 from src.tp1.utils.lib import choose_interface
 from tp1.utils.config import logger
-
+from scapy.all import sniff
 
 class Capture:
     def __init__(self) -> None:
@@ -13,6 +15,7 @@ class Capture:
         """
         interface = self.interface
         logger.info(f"Capture traffic from interface {interface}")
+        sniff(ifaces=interface,)
 
     def sort_network_protocols(self) -> str:
         """
