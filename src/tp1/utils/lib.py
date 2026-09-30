@@ -1,7 +1,9 @@
 from scapy.all import get_if_list
 from scapy.layers.dns import DNS
+from scapy.layers.http import HTTPRequest, HTTPResponse
 from scapy.layers.inet import ICMP, TCP, UDP
 from scapy.layers.l2 import ARP
+from scapy.layers.tls.record import TLS
 
 
 def hello_world() -> str:
@@ -24,6 +26,9 @@ def select(options,invite) -> str:
 
 def protocole(pkt):
     if DNS in pkt:   return "DNS"
+    if pkt.haslayer(HTTPRequest):  return "HTTP"
+    if pkt.haslayer(HTTPResponse): return "HTTP"
+    if pkt.haslayer(TLS):          return "TLS/HTTPS"
     if ARP in pkt:   return "ARP"
     if ICMP in pkt:  return "ICMP"
     if TCP in pkt:   return "TCP"

@@ -7,6 +7,7 @@ from scapy.all import sniff
 class Capture:
     def __init__(self) -> None:
         self.interface = choose_interface()
+        self.pkts = self.capture_traffic()
         self.summary =  self._gen_summary()
 
     def capture_traffic(self) -> PacketList:
@@ -17,20 +18,20 @@ class Capture:
         logger.info(f"Capture traffic from interface {interface}")
         return sniff(iface=interface,timeout=30)
 
-    def sort_network_protocols(self,pkts :PacketList) -> dict:
+    def sort_network_protocols(self) -> dict:
         """
         Sort and return all captured network protocols
         """
-        protocols = self.get_all_protocols(pkts)
+        protocols = self.get_all_protocols()
         protocols_sorted = dict(sorted(protocols.items(), key=lambda x: x[1], reverse=True))
         return protocols_sorted
 
-    def get_all_protocols(self,pkts : PacketList) -> dict:
+    def get_all_protocols(self) -> dict:
         """
         Return all protocols captured with total packets number
         """
         protocols = {}
-        for pkt in pkts:
+        for pkt in self.pkts:
             nom = protocole(pkt)
             if nom not in protocols:
                 protocols[nom]=0
@@ -49,9 +50,8 @@ class Capture:
         attaquante.
         Sinon a cher que tout va bien
         """
-        pkts = self.capture_traffic()
-        all_protocols = self.get_all_protocols(pkts)
-        sort = self.sort_network_protocols(pkts)
+        all_protocols = self.get_all_protocols()
+        sort = self.sort_network_protocols()
         logger.debug(f"All protocols: {all_protocols}")
         logger.debug(f"Sorted protocols: {sort}")
 
