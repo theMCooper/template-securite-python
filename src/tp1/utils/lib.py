@@ -1,4 +1,7 @@
 from scapy.all import get_if_list
+from scapy.layers.dns import DNS
+from scapy.layers.inet import ICMP, TCP, UDP
+from scapy.layers.l2 import ARP
 
 
 def hello_world() -> str:
@@ -18,6 +21,14 @@ def select(options,invite) -> str:
             return options[int(saisie) - 1]
         print("Choix invalide, réessaie.")
 
+
+def protocole(pkt):
+    if DNS in pkt:   return "DNS"
+    if ARP in pkt:   return "ARP"
+    if ICMP in pkt:  return "ICMP"
+    if TCP in pkt:   return "TCP"
+    if UDP in pkt:   return "UDP"
+    return pkt.lastlayer().name
 
 def choose_interface() -> str:
     """
