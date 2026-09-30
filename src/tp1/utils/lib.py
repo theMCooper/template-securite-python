@@ -1,5 +1,6 @@
 from scapy.all import get_if_list
 
+
 def hello_world() -> str:
     """
     Hello world function
@@ -16,7 +17,6 @@ def select(options,invite) -> str:
         if saisie.isdigit() and 1 <= int(saisie) <= len(options):
             return options[int(saisie) - 1]
         print("Choix invalide, réessaie.")
-
 
 
 def choose_interface() -> str:

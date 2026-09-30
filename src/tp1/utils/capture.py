@@ -1,4 +1,8 @@
+from asyncio import timeout
+
+from _pytest import capture
 from scapy.interfaces import ifaces
+from scapy.plist import PacketList
 
 from src.tp1.utils.lib import choose_interface
 from tp1.utils.config import logger
@@ -7,15 +11,16 @@ from scapy.all import sniff
 class Capture:
     def __init__(self) -> None:
         self.interface = choose_interface()
-        self.summary = ""
+        self.capture = self.capture_traffic()
+        self.summary =  self._gen_summary()
 
-    def capture_traffic(self) -> None:
+    def capture_traffic(self) -> PacketList:
         """
         Capture network traffic from an interface
         """
         interface = self.interface
         logger.info(f"Capture traffic from interface {interface}")
-        sniff(ifaces=interface,)
+        return sniff(ifaces=interface,timeout=30)
 
     def sort_network_protocols(self) -> str:
         """
@@ -23,11 +28,17 @@ class Capture:
         """
         return ""
 
-    def get_all_protocols(self) -> str:
+    def get_all_protocols(self) -> dict:
         """
         Return all protocols captured with total packets number
         """
-        return ""
+        protocol = {}
+        for pkt in self.capture:
+            nom = pkt.lastlayer().name
+            if nom not in protocol:
+                protocol[nom]=[]
+            protocol[nom].append(pkt)
+        return protocol
 
     def analyse(self, protocols: str) -> None:
         """
