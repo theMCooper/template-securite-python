@@ -7,8 +7,6 @@ def main():
     logger.info("Starting TP1")
 
     capture = Capture()
-    c = capture.capture_traffic()
-    logger.info(capture.get_all_protocols(c))
     capture.sort_network_protocols()
     capture.analyse("tcp")
     summary = capture.get_summary()

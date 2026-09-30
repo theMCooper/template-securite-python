@@ -1,3 +1,4 @@
+from _pytest import capture
 from scapy.plist import PacketList
 from src.tp1.utils.lib import choose_interface, protocole
 from tp1.utils.config import logger
@@ -16,23 +17,25 @@ class Capture:
         logger.info(f"Capture traffic from interface {interface}")
         return sniff(iface=interface,timeout=30)
 
-    def sort_network_protocols(self) -> str:
+    def sort_network_protocols(self,pkts :PacketList) -> dict:
         """
         Sort and return all captured network protocols
         """
-        return ""
+        protocols = self.get_all_protocols(pkts)
+        protocols_sorted = dict(sorted(protocols.items(), key=lambda x: x[1], reverse=True))
+        return protocols_sorted
 
-    def get_all_protocols(self,capture : PacketList) -> dict:
+    def get_all_protocols(self,pkts : PacketList) -> dict:
         """
         Return all protocols captured with total packets number
         """
-        protocol = {}
-        for pkt in capture:
+        protocols = {}
+        for pkt in pkts:
             nom = protocole(pkt)
-            if nom not in protocol:
-                protocol[nom]=0
-            protocol[nom]+=1
-        return protocol
+            if nom not in protocols:
+                protocols[nom]=0
+            protocols[nom]+=1
+        return protocols
 
     def analyse(self, protocols: str) -> None:
         """
@@ -46,8 +49,9 @@ class Capture:
         attaquante.
         Sinon a cher que tout va bien
         """
-        all_protocols = self.get_all_protocols()
-        sort = self.sort_network_protocols()
+        pkts = self.capture_traffic()
+        all_protocols = self.get_all_protocols(pkts)
+        sort = self.sort_network_protocols(pkts)
         logger.debug(f"All protocols: {all_protocols}")
         logger.debug(f"Sorted protocols: {sort}")
 
