@@ -11,7 +11,6 @@ from scapy.all import sniff
 class Capture:
     def __init__(self) -> None:
         self.interface = choose_interface()
-        self.capture = self.capture_traffic()
         self.summary =  self._gen_summary()
 
     def capture_traffic(self) -> PacketList:
@@ -28,12 +27,12 @@ class Capture:
         """
         return ""
 
-    def get_all_protocols(self) -> dict:
+    def get_all_protocols(self,capture : PacketList) -> dict:
         """
         Return all protocols captured with total packets number
         """
         protocol = {}
-        for pkt in self.capture:
+        for pkt in capture:
             nom = pkt.lastlayer().name
             if nom not in protocol:
                 protocol[nom]=[]

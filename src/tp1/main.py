@@ -8,6 +8,7 @@ def main():
 
     capture = Capture()
     capture.capture_traffic()
+    capture.sort_network_protocols()
     capture.analyse("tcp")
     summary = capture.get_summary()
 
