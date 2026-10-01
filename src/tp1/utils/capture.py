@@ -1,3 +1,5 @@
+from collections import Counter
+
 from _pytest import capture
 from scapy.plist import PacketList
 from src.tp1.utils.lib import choose_interface, protocole
@@ -23,7 +25,7 @@ class Capture:
         Sort and return all captured network protocols
         """
         protocols = self.get_all_protocols()
-        protocols_sorted = dict(sorted(protocols.items(), key=lambda x: x[1], reverse=True))
+        protocols_sorted = dict(Counter(protocols).most_common())
         return protocols_sorted
 
     def get_all_protocols(self) -> dict:
@@ -52,8 +54,8 @@ class Capture:
         """
         all_protocols = self.get_all_protocols()
         sort = self.sort_network_protocols()
-        logger.debug(f"All protocols: {all_protocols}")
-        logger.debug(f"Sorted protocols: {sort}")
+        logger.info(f"All protocols: {all_protocols}")
+        logger.info(f"Sorted protocols: {sort}")
 
         self.summary = self._gen_summary()
 
