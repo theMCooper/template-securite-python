@@ -1,6 +1,8 @@
 from collections import Counter
 
 from _pytest import capture
+from scapy.layers.inet import TCP, IP
+from scapy.layers.l2 import ARP
 from scapy.plist import PacketList
 from src.tp1.utils.lib import choose_interface, protocole
 from tp1.utils.config import logger
@@ -55,7 +57,7 @@ class Capture:
                     logger.info(f"[!] ALERTE : {ip} était {arp_table[ip]}, maintenant {mac}")
                     arp_table[ip] = mac
                     spoofing_table[ip] = mac
-        return spoofing_table;
+        return spoofing_table
 
     def scan_port_SYN(self) -> list:
         """
@@ -65,12 +67,12 @@ class Capture:
         scan_probable =[]
         for pkt in self.pkts:
             if pkt.haslayer(TCP) and pkt[TCP].flags == "S":
-                src = pkt[ip].src
+                src = pkt[IP].src
                 if src not in syn_scan:
                     syn_scan[src] = []
                 syn_scan[src].append(pkt[TCP].dport)
                 if len(syn_scan[src]) > 10:
-                     print(f"[!] {src} a touché {len(seen[src])} ports -> scan  probable")
+                     print(f"[!] {src} a touché {len(syn_scan[src])} ports -> scan  probable")
                      scan_probable.append(src)
         return scan_probable
 
