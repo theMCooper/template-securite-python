@@ -10,7 +10,7 @@ def parameter(args) -> list:
         if args[i] = "--pcap":
             pcap = args[i+1]
         if args[i] = "--out":
-            sortie = args[i=1]
+            sortie = args[i+1]
     return  [pcap,sortie]
 
 def main():

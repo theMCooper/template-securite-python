@@ -66,6 +66,42 @@ class Capture:
         """
         return self.summary
 
+    def detect_arp_spoofing(self) -> dict:
+        """
+            detecte les tentatives arp spoofing
+        """
+        arp_table={}
+        spoofing_table={}
+        for pkt in self.pkts:
+            if pkt.haslayer(ARP) and pkt[ARP].op == 2:
+                ip,mac = pkt[ARP].psrc , pkt[ARP].hwrc
+                if ip not in arp_table:
+                    arp_table[ip] = mac
+                elif arp_table[ip] != mac:
+                    logger.info(f"[!] ALERTE : {ip} était {arp_table[ip]}, maintenant {mac}")
+                    arp_table[ip] = mac
+                    spoofing_table[ip] = mac
+        return spoofing_table;
+
+    def scan_port_SYN(self) -> list:
+        """
+            detecte les scan syn
+        """
+        syn_scan = {}
+        scan_probable =[]
+        for pkt in self.pkts:
+            if pkt.haslayer(TCP) and pkt[TCP].flags == "S":
+                src = pkt[ip].src
+                if src not in syn_scan:
+                    syn_scan[src] = []
+                syn_scan[src].append(pkt[TCP].dport)
+                if len(syn_scan[src]) > 10:
+                     print(f"[!] {src} a touché {len(seen[src])} ports -> scan  probable")
+                     scan_probable.append(src)
+        return scan_probable
+
+
+                
     def _gen_summary(self) -> str:
         """
         Generate summary

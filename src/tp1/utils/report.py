@@ -47,7 +47,6 @@ class Report:
         Generate graph and array
         """
         if param == "graph":
-            # TODO: generate graph
             protos = list(self.stats.keys())
             valeurs = list(self.stats.values())
 
@@ -62,8 +61,6 @@ class Report:
             self.graph = "graph.png"
 
         elif param == "array":
-                # TODO: generate array
-                # construction du tableau HTML par concaténation (esprit du squelette)
                 html = "<table border='1'><thead><tr><th>Protocole</th><th>Paquets</th></tr></thead><tbody>"
                 for proto, nombre in self.stats.items():
                     html += f"<tr><td>{proto}</td><td>{nombre}</td></tr>"
