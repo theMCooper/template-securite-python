@@ -40,32 +40,6 @@ class Capture:
             protocols[nom]+=1
         return protocols
 
-    def analyse(self, protocols: str) -> None:
-        """
-        Analyse all captured data and return statement
-        Si un tra c est illégitime (exemple : Injection SQL, ARP
-        Spoo ng, etc)
-        a Noter la tentative d'attaque.
-        b Relever le protocole ainsi que l'adresse réseau/physique
-        de l'attaquant.
-        c (FACULTATIF) Opérer le blocage de la machine
-        attaquante.
-        Sinon a cher que tout va bien
-        """
-        all_protocols = self.get_all_protocols()
-        sort = self.sort_network_protocols()
-        logger.info(f"All protocols: {all_protocols}")
-        logger.info(f"Sorted protocols: {sort}")
-
-        self.summary = self._gen_summary()
-
-    def get_summary(self) -> str:
-        """
-        Return summary
-        :return:
-        """
-        return self.summary
-
     def detect_arp_spoofing(self) -> dict:
         """
             detecte les tentatives arp spoofing
@@ -99,6 +73,33 @@ class Capture:
                      print(f"[!] {src} a touché {len(seen[src])} ports -> scan  probable")
                      scan_probable.append(src)
         return scan_probable
+
+    def analyse(self, protocols: str) -> None:
+        """
+        Analyse all captured data and return statement
+        Si un tra c est illégitime (exemple : Injection SQL, ARP
+        Spoo ng, etc)
+        a Noter la tentative d'attaque.
+        b Relever le protocole ainsi que l'adresse réseau/physique
+        de l'attaquant.
+        c (FACULTATIF) Opérer le blocage de la machine
+        attaquante.
+        Sinon a cher que tout va bien
+        """
+        all_protocols = self.get_all_protocols()
+        sort = self.sort_network_protocols()
+        logger.info(f"All protocols: {all_protocols}")
+        logger.info(f"Sorted protocols: {sort}")
+
+        self.summary = self._gen_summary()
+
+    def get_summary(self) -> str:
+        """
+        Return summary
+        :return:
+        """
+        return self.summary
+
 
 
                 
