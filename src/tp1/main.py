@@ -18,7 +18,7 @@ def main():
 
     capture = Capture()
     capture.sort_network_protocols()
-    capture.analyse("tcp")
+    capture.analyse()
     summary = capture.get_summary()
 
     filename = "report.pdf"

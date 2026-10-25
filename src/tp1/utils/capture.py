@@ -1,5 +1,4 @@
 from collections import Counter
-
 from _pytest import capture
 from scapy.layers.inet import TCP, IP
 from scapy.layers.l2 import ARP
@@ -71,6 +70,42 @@ class Capture:
                 scans.append(src)
         return sorted(scans)
 
+    def detect_sql_injection(self) -> list[str]:
+        """
+        Détecte les injections SQL dans les requêtes HTTP.
+        Renvoie la liste des IP qui ont envoyé une requête suspecte.
+        """
+        attaquants = []
+        mots_sqli = [
+            "or 1=1",
+            "' or '1'='1",
+            "union select",
+            "union all select",
+            "/**/",
+            "'--",
+            "'#",
+            "drop table",
+            "information_schema",
+            "sleep(",
+        ]
+        for pkt in self.pkts:
+            if not pkt.haslayer(TCP) or not pkt.haslayer(IP):
+                continue
+
+            texte = bytes(pkt[TCP].payload).decode(errors="ignore")
+            if not texte.startswith(("GET ", "POST ")):
+                continue
+
+            premiere_ligne = texte.split("\r\n")[0]
+            corps = texte.split("\r\n\r\n")[-1]
+            texte = premiere_ligne + " " + corps
+
+            for mot in mots_sqli:
+                if mot in texte and pkt[IP].src not in attaquants:
+                    logger.warning(f"[SQLI] {pkt[IP].src} : {premiere_ligne}")
+                    attaquants.append(pkt[IP].src)
+
+        return sorted(attaquants)
     def detect_arp_spoofing(self) -> list[str]:
         """
         Détecte l'ARP spoofing et renvoie la liste des MAC des attaquants.
@@ -94,7 +129,20 @@ class Capture:
                 attaquants.append(mac)
         return sorted(attaquants)
 
-    def analyse(self, protocols: str) -> None:
+    def get_attacks(self) -> list[dict]:
+        """
+        Renvoie toutes les attaques au format de report.json
+        """
+        attaques = []
+        for mac in self.detect_arp_spoofing():
+            attaques.append({"type": "arp_spoofing", "attacker": mac})
+        for ip in self.scan_port_syn():
+            attaques.append({"type": "port_scan", "attacker": ip})
+        for ip in self.detect_sql_injection():
+            attaques.append({"type": "sql_injection", "attacker": ip})
+        return attaques
+
+    def analyse(self) -> None:
         """
         Analyse all captured data and return statement
         Si un tra c est illégitime (exemple : Injection SQL, ARP
@@ -110,12 +158,10 @@ class Capture:
         sort = self.sort_network_protocols()
         logger.info(f"All protocols: {all_protocols}")
         logger.info(f"Sorted protocols: {sort}")
-        arp_spoofing = self.detect_arp_spoofing()
-        syn_scan = self.scan_port_SYN()
-        if arp_spoofing :
-            logger.info("detecte une tentative attaque arp")
-        if syn_scan:
-            logger.info("detecte une tentative de synscan")
+
+        self.attacks = self.get_attacks()
+        if len(self.attacks) == 0:
+            logger.info("Aucune attaque détectée, tout va bien")
 
         self.summary = self._gen_summary()
 
