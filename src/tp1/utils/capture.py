@@ -47,7 +47,7 @@ class Capture:
             protocols[nom]+=1
         return protocols
 
-    def scan_port_SYN(self, seuil: int = 10) -> list[str]:
+    def scan_port_syn(self, seuil: int = 10) -> list[str]:
         """
         Détecte les scans de ports. Renvoie la liste des IP qui scannent.
         """
@@ -93,23 +93,6 @@ class Capture:
             if n >= 3:
                 attaquants.append(mac)
         return sorted(attaquants)
-
-    def scan_port_SYN(self) -> list:
-        """
-            detecte les scan syn
-        """
-        syn_scan = {}
-        scan_probable =[]
-        for pkt in self.pkts:
-            if pkt.haslayer(TCP) and pkt[TCP].flags == "S":
-                src = pkt[IP].src
-                if src not in syn_scan:
-                    syn_scan[src] = []
-                syn_scan[src].append(pkt[TCP].dport)
-                if len(syn_scan[src]) > 10:
-                     print(f"[!] {src} a touché {len(syn_scan[src])} ports -> scan  probable")
-                     scan_probable.append(src)
-        return scan_probable
 
     def analyse(self, protocols: str) -> None:
         """
