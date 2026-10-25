@@ -1,0 +1,13 @@
+{
+  "protocols": {
+    "UDP": 34,
+    "TCP": 20,
+    "TLS/HTTPS": 14,
+    "ARP": 5,
+    "DNS": 4,
+    "ICMPv6 Neighbor Discovery Option - Source Link-Layer Address": 1,
+    "ICMPv6 Neighbor Discovery - Neighbor Advertisement": 1
+  },
+  "attacks": [],
+  "flag": ""
+}
