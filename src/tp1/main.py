@@ -7,9 +7,9 @@ def parameter(args) -> list:
     pcap=""
     sortie=""
     for i in range(1,len(args)):
-        if args[i] = "--pcap":
+        if args[i] == "--pcap":
             pcap = args[i+1]
-        if args[i] = "--out":
+        if args[i] == "--out":
             sortie = args[i+1]
     return  [pcap,sortie]
 

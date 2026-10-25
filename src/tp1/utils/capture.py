@@ -9,10 +9,15 @@ from tp1.utils.config import logger
 from scapy.all import sniff
 
 class Capture:
-    def __init__(self) -> None:
-        self.interface = choose_interface()
-        self.pkts = self.capture_traffic()
-        self.summary =  self._gen_summary()
+    def __init__(self,pkts: list | None = None) -> None:
+        if pkts is None:
+            self.interface = choose_interface()
+            self.pkts = self.capture_traffic()
+        else:
+            self.interface = ""
+            self.pkts = pkts
+        self.attacks = []
+        self.summary = self._gen_summary()
 
     def capture_traffic(self) -> PacketList:
         """
@@ -41,6 +46,32 @@ class Capture:
                 protocols[nom]=0
             protocols[nom]+=1
         return protocols
+
+    def scan_port_SYN(self, seuil: int = 10) -> list[str]:
+        """
+        Détecte les scans de ports : une IP qui envoie des SYN vers au moins
+        `seuil` ports différents. Renvoie la liste des IP qui scannent.
+        """
+        ports_par_ip = {}
+        for pkt in self.pkts:
+            if not pkt.haslayer(TCP):
+                continue
+            if pkt[TCP].flags != "S":
+                continue
+            src = pkt[IP].src
+            port = pkt[TCP].dport
+            if src not in ports_par_ip:
+                ports_par_ip[src] = []
+            if port not in ports_par_ip[src]:
+                ports_par_ip[src].append(port)
+
+        scans = []
+        for src, ports in ports_par_ip.items():
+            nb_ports = len(ports)
+            if nb_ports >= seuil:
+                logger.warning(f"[SCAN] {src} a envoyé des SYN vers {nb_ports} ports différents")
+                scans.append(src)
+        return sorted(scans)
 
     def detect_arp_spoofing(self) -> dict:
         """
@@ -92,6 +123,12 @@ class Capture:
         sort = self.sort_network_protocols()
         logger.info(f"All protocols: {all_protocols}")
         logger.info(f"Sorted protocols: {sort}")
+        arp_spoofing = self.detect_arp_spoofing()
+        syn_scan = self.scan_port_SYN()
+        if arp_spoofing :
+            logger.info("detecte une tentative attaque arp")
+        if syn_scan:
+            logger.info("detecte une tentative de synscan")
 
         self.summary = self._gen_summary()
 
@@ -101,8 +138,6 @@ class Capture:
         :return:
         """
         return self.summary
-
-
 
                 
     def _gen_summary(self) -> str:
