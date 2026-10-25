@@ -151,18 +151,15 @@ class Capture:
     def trouver_flag(self, ips_attaquants: list[str]) -> str:
         """
         Cherche ESGI{...} dans les requêtes HTTP envoyées par les attaquants
-        (d'autres requêtes HTTP de la capture contiennent des faux flags)
         """
         for pkt in self.pkts:
             if not pkt.haslayer(TCP) or not pkt.haslayer(IP):
                 continue
             if pkt[IP].src not in ips_attaquants:
-                continue  # pas un attaquant : on ignore (c'est là que sont les leurres)
-
+                continue
             texte = bytes(pkt[TCP].payload).decode(errors="ignore")
             if not texte.startswith(("GET ", "POST ")):
-                continue  # pas une requête HTTP
-
+                continue
             resultat = re.search(r"ESGI\{[^}]+\}", texte)
             if resultat:
                 return resultat.group()

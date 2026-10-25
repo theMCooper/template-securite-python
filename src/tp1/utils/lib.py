@@ -34,7 +34,7 @@ def protocole(pkt) -> list[str]:
     """
     noms = []
     if pkt.haslayer(Ether):
-        noms.append("ETHERNET")
+        noms.append("Ethernet")
     if pkt.haslayer(ARP):
         noms.append("ARP")
     if pkt.haslayer(IP):
