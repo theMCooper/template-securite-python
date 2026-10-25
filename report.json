@@ -1,13 +1,27 @@
 {
   "protocols": {
-    "UDP": 34,
-    "TCP": 20,
-    "TLS/HTTPS": 14,
-    "ARP": 5,
-    "DNS": 4,
-    "ICMPv6 Neighbor Discovery Option - Source Link-Layer Address": 1,
-    "ICMPv6 Neighbor Discovery - Neighbor Advertisement": 1
+    "ETHERNET": 143,
+    "IP": 123,
+    "TCP": 95,
+    "ARP": 20,
+    "ICMP": 16,
+    "HTTP": 13,
+    "UDP": 12,
+    "DNS": 12
   },
-  "attacks": [],
-  "flag": ""
+  "attacks": [
+    {
+      "type": "arp_spoofing",
+      "attacker": "02:b1:bf:1c:69:c0"
+    },
+    {
+      "type": "port_scan",
+      "attacker": "192.168.86.66"
+    },
+    {
+      "type": "sql_injection",
+      "attacker": "192.168.86.77"
+    }
+  ],
+  "flag": "ESGI{tp1_57c6efd6a8e8}"
 }

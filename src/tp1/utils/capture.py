@@ -1,5 +1,7 @@
+import re
 from collections import Counter
-from _pytest import capture
+from urllib.parse import unquote_plus
+
 from scapy.layers.inet import TCP, IP
 from scapy.layers.l2 import ARP
 from scapy.plist import PacketList
@@ -19,7 +21,7 @@ class Capture:
             self.pkts = self.capture_traffic()
         self.attacks = []
         self.flag = ""
-        self.summary = self._gen_summary()
+        self.summary = ""
 
     def capture_traffic(self) -> PacketList:
         """
@@ -43,12 +45,11 @@ class Capture:
         """
         protocols = {}
         for pkt in self.pkts:
-            nom = protocole(pkt)
-            if nom not in protocols:
-                protocols[nom]=0
-            protocols[nom]+=1
+            for nom in protocole(pkt):  # un paquet compte pour chacune de ses couches
+                if nom not in protocols:
+                    protocols[nom] = 0
+                protocols[nom] += 1
         return protocols
-
     def scan_port_syn(self, seuil: int = 10) -> list[str]:
         """
         Détecte les scans de ports. Renvoie la liste des IP qui scannent.
@@ -104,8 +105,7 @@ class Capture:
 
             premiere_ligne = texte.split("\r\n")[0]
             corps = texte.split("\r\n\r\n")[-1]
-            texte = premiere_ligne + " " + corps
-
+            texte = unquote_plus(premiere_ligne + " " + corps).lower()
             for mot in mots_sqli:
                 if mot in texte and pkt[IP].src not in attaquants:
                     logger.warning(f"[SQLI] {pkt[IP].src} : {premiere_ligne}")
@@ -148,6 +148,26 @@ class Capture:
             attaques.append({"type": "sql_injection", "attacker": ip})
         return attaques
 
+    def trouver_flag(self, ips_attaquants: list[str]) -> str:
+        """
+        Cherche ESGI{...} dans les requêtes HTTP envoyées par les attaquants
+        (d'autres requêtes HTTP de la capture contiennent des faux flags)
+        """
+        for pkt in self.pkts:
+            if not pkt.haslayer(TCP) or not pkt.haslayer(IP):
+                continue
+            if pkt[IP].src not in ips_attaquants:
+                continue  # pas un attaquant : on ignore (c'est là que sont les leurres)
+
+            texte = bytes(pkt[TCP].payload).decode(errors="ignore")
+            if not texte.startswith(("GET ", "POST ")):
+                continue  # pas une requête HTTP
+
+            resultat = re.search(r"ESGI\{[^}]+\}", texte)
+            if resultat:
+                return resultat.group()
+        return ""
+
     def analyse(self) -> None:
         """
         Analyse all captured data and return statement
@@ -169,6 +189,12 @@ class Capture:
         if len(self.attacks) == 0:
             logger.info("Aucune attaque détectée, tout va bien")
 
+        ips_attaquants = []
+        for attaque in self.attacks:
+            if attaque["type"] != "arp_spoofing":
+                ips_attaquants.append(attaque["attacker"])
+        self.flag = self.trouver_flag(ips_attaquants)
+        logger.info(f"Flag : {self.flag}")
         self.summary = self._gen_summary()
 
     def get_summary(self) -> str:
@@ -183,5 +209,13 @@ class Capture:
         """
         Generate summary
         """
-        summary = ""
+        summary = f"{len(self.pkts)} paquets analysés.<br>"
+        if len(self.attacks) == 0:
+            summary += "Aucune attaque détectée, tout va bien.<br>"
+        else:
+            summary += f"{len(self.attacks)} attaque(s) détectée(s) :<br>"
+            for attaque in self.attacks:
+                summary += f"- {attaque['type']} : attaquant {attaque['attacker']}<br>"
+        if self.flag != "":
+            summary += f"Flag : {self.flag}<br>"
         return summary

@@ -10,6 +10,7 @@ from tp1.utils.report import Report
 
 
 def lire_arguments(argv: list[str] | None = None):
+    """parser d'argument"""
     parser = argparse.ArgumentParser(description="IDS maison : analyse une capture réseau")
     parser.add_argument("--pcap", help="fichier PCAP à analyser")
     parser.add_argument("--iface", default="", help="interface pour une capture en direct")
@@ -32,6 +33,7 @@ def ecrire_json(chemin: str, capture: Capture):
 
 
 def main(argv: list[str] | None = None):
+    """fonction main du programme"""
     logger.info("Starting TP1")
     args = lire_arguments(argv)
 
