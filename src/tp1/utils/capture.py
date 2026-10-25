@@ -56,7 +56,10 @@ class Capture:
                 continue
             if pkt[TCP].flags != "S":
                 continue
-            src = pkt[IP].src
+            if pkt.haslayer(IP):
+                src = pkt[IP].src
+            else :
+                continue
             port = pkt[TCP].dport
             if src not in ports_par_ip:
                 ports_par_ip[src] = []
