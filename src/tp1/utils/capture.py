@@ -8,14 +8,17 @@ from tp1.utils.config import logger
 from scapy.all import sniff
 
 class Capture:
-    def __init__(self,pkts: list | None = None) -> None:
-        if pkts is None:
-            self.interface = choose_interface()
-            self.pkts = self.capture_traffic()
-        else:
+    def __init__(self,pkts: PacketList | None = None,interface: str = "") -> None:
+        if pkts is not None:
             self.interface = ""
             self.pkts = pkts
+        else:
+            if interface == "":
+                interface = choose_interface()
+            self.interface = interface
+            self.pkts = self.capture_traffic()
         self.attacks = []
+        self.flag = ""
         self.summary = self._gen_summary()
 
     def capture_traffic(self) -> PacketList:
