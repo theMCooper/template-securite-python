@@ -49,8 +49,7 @@ class Capture:
 
     def scan_port_SYN(self, seuil: int = 10) -> list[str]:
         """
-        Détecte les scans de ports : une IP qui envoie des SYN vers au moins
-        `seuil` ports différents. Renvoie la liste des IP qui scannent.
+        Détecte les scans de ports. Renvoie la liste des IP qui scannent.
         """
         ports_par_ip = {}
         for pkt in self.pkts:
@@ -64,7 +63,6 @@ class Capture:
                 ports_par_ip[src] = []
             if port not in ports_par_ip[src]:
                 ports_par_ip[src].append(port)
-
         scans = []
         for src, ports in ports_par_ip.items():
             nb_ports = len(ports)
@@ -73,22 +71,28 @@ class Capture:
                 scans.append(src)
         return sorted(scans)
 
-    def detect_arp_spoofing(self) -> dict:
+    def detect_arp_spoofing(self) -> list[str]:
         """
-            detecte les tentatives arp spoofing
+        Détecte l'ARP spoofing et renvoie la liste des MAC des attaquants.
+
         """
-        arp_table={}
-        spoofing_table={}
+        requetes = set()
+        non_sollicitees = {}
+
         for pkt in self.pkts:
-            if pkt.haslayer(ARP) and pkt[ARP].op == 2:
-                ip,mac = pkt[ARP].psrc , pkt[ARP].hwrc
-                if ip not in arp_table:
-                    arp_table[ip] = mac
-                elif arp_table[ip] != mac:
-                    logger.info(f"[!] ALERTE : {ip} était {arp_table[ip]}, maintenant {mac}")
-                    arp_table[ip] = mac
-                    spoofing_table[ip] = mac
-        return spoofing_table
+            if not pkt.haslayer(ARP):
+                continue
+            a = pkt[ARP]
+            if a.op == 1:
+                requetes.add((a.psrc, a.pdst))
+            elif a.op == 2 and a.pdst != a.psrc and (a.pdst, a.psrc) not in requetes:
+                non_sollicitees[a.hwsrc] = non_sollicitees.get(a.hwsrc, 0) + 1
+
+        attaquants = []
+        for mac, n in non_sollicitees.items():
+            if n >= 3:
+                attaquants.append(mac)
+        return sorted(attaquants)
 
     def scan_port_SYN(self) -> list:
         """
