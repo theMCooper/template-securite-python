@@ -1,4 +1,10 @@
-from src.tp1.utils.lib import hello_world, choose_interface
+from scapy.layers.http import HTTP, HTTPResponse
+from scapy.layers.inet import IP, ICMP, TCP, UDP
+from scapy.layers.inet6 import IPv6
+from scapy.layers.l2 import Ether, ARP
+from scapy.layers.tls.record import TLS
+
+from src.tp1.utils.lib import hello_world, choose_interface, protocole
 
 
 def test_when_hello_world_then_return_hello_world():
@@ -12,9 +18,9 @@ def test_when_hello_world_then_return_hello_world():
     assert result == string
 
 
-def test_when_choose_interface_then_return_empty_string():
-    # When
-    result = choose_interface()
-
-    # Then
-    assert result == ""
+def test_protocole():
+    assert protocole(Ether() / ARP()) == ["Ethernet", "ARP"]
+    assert protocole(IP() / ICMP()) == ["IP", "ICMP"]
+    assert protocole(IP() / TCP() / HTTP() / HTTPResponse()) == ["IP", "TCP", "HTTP"]
+    assert protocole(IP() / TCP() / TLS()) == ["IP", "TCP", "TLS"]
+    assert protocole(Ether() / IPv6() / UDP()) == ["Ethernet", "IPV6", "UDP"]
