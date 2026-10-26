@@ -24,3 +24,4 @@ def test_protocole():
     assert protocole(IP() / TCP() / HTTP() / HTTPResponse()) == ["IP", "TCP", "HTTP"]
     assert protocole(IP() / TCP() / TLS()) == ["IP", "TCP", "TLS"]
     assert protocole(Ether() / IPv6() / UDP()) == ["Ethernet", "IPV6", "UDP"]
+
