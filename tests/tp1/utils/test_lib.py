@@ -25,3 +25,17 @@ def test_protocole():
     assert protocole(IP() / TCP() / TLS()) == ["IP", "TCP", "TLS"]
     assert protocole(Ether() / IPv6() / UDP()) == ["Ethernet", "IPV6", "UDP"]
 
+def test_select():
+    with patch("builtins.input", return_value="2"):  # simule l'utilisateur qui tape 2
+        resultat = select(["lo", "eth0"], "choix : ")
+
+    assert resultat == "eth0"
+
+
+
+def test_choose_interface():
+    with (
+        patch("tp1.utils.lib.get_if_list", return_value=["lo", "wlp3s0"]),
+        patch("builtins.input", return_value="2"),
+    ):
+        assert choose_interface() == "wlp3s0"
