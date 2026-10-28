@@ -129,7 +129,6 @@ class Capture:
                 requetes.add((a.psrc, a.pdst))
             elif a.op == 2 and a.pdst != a.psrc and (a.pdst, a.psrc) not in requetes:
                 non_sollicitees[a.hwsrc] = non_sollicitees.get(a.hwsrc, 0) + 1
-
         attaquants = []
         for mac, n in non_sollicitees.items():
             if n >= 3:
