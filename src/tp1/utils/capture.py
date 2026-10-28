@@ -112,6 +112,7 @@ class Capture:
                     attaquants.append(pkt[IP].src)
 
         return sorted(attaquants)
+
     def detect_arp_spoofing(self) -> list[str]:
         """
         Détecte l'ARP spoofing et renvoie la liste des MAC des attaquants.
