@@ -32,7 +32,6 @@ def test_select():
     assert resultat == "eth0"
 
 
-
 def test_choose_interface():
     with (
         patch("tp1.utils.lib.get_if_list", return_value=["lo", "wlp3s0"]),
