@@ -18,6 +18,11 @@ def main(argv: list[str] | None = None):
     """fonction main du programme"""
     logger.info("Starting TP2")
     args = lire_arguments(argv)
+    if not args.samples.is_dir():
+        logger.error("Dossier d'échantillons introuvable : %s", args.samples)
+        return 1
+    args.out.mkdir(parents=True, exist_ok=True)
+    return 0
 
 if __name__ == "__main__":
     main()
