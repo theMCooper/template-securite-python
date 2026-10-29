@@ -116,5 +116,27 @@ def ip_valide(texte: str) -> bool:
     except ValueError:
         return not (ip.is_loopback or ip.is_unspecified or ip.is_multicast or ip.is_reserved or ip.is_link_local)
 
+def extract_iocs(data: bytes) -> dict:
+    """Extrait domaines, IP, URL, mutex et clés de registre des chaînes propres."""
+    iocs = {"domains": set(), "ips": set(), "urls": set(), "mutex": set(), "registry": set()}
+    propres, _ = extraire_chaines(data)
+    for texte in propres:
+        for url in URL_RE.findall(texte):
+            url = url.rstrip(PONCTUATION)
+            hote = (urlsplit(url).hostname or "").lower()
+            if IP_RE.fullmatch(hote):
+                if not ip_valide(hote):
+                    continue
+                iocs["ips"].add(hote)
+            elif hote:
+                iocs["domains"].add(hote)
+            iocs["urls"].add(url)
+        for domaine in DOMAINE_RE.findall(texte):
+            if domaine.rsplit(".", 1)[-1].lower() not in EXTENSIONS:
+                iocs["domains"].add(domaine.lower())
+        iocs["ips"].update(ip for ip in IP_RE.findall(texte) if ip_valide(ip))
+        iocs["mutex"].update(MUTEX_RE.findall(texte))
+        iocs["registry"].update(cle.rstrip(PONCTUATION) for cle in REGISTRE_RE.findall(texte))
+    return {cle: sorted(valeurs) for cle, valeurs in iocs.items()}
 
 
