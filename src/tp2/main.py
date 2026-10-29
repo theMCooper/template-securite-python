@@ -14,6 +14,8 @@ from tp2.utils.lib import (
     yara_scan,
 )
 from tp2.utils.config import logger
+from tp2.utils.report import generate_report
+
 
 def analyser_fichier(chemin: Path, regles, clients: list) -> tuple[dict, dict]:
     """Fait passer un fichier dans tout le pipeline. Renvoie (rapport JSON, infos pour le PDF)."""
@@ -50,7 +52,6 @@ def lire_arguments(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--samples", type=Path, required=True,help="dossier des échantillons à analyser")
     parser.add_argument("--rules", type=Path, required=True,help="dossier des règles YARA")
     parser.add_argument("--out", type=Path, required=True,help="dossier de sortie (un JSON par échantillon)")
-    parser.add_argument("-v", "--verbose", action="store_true",help="logs détaillés (niveau DEBUG)")
     return parser.parse_args(argv)
 
 def main(argv: list[str] | None = None):
