@@ -214,8 +214,8 @@ def test_llm_triage(secours):
 
 def test_openrouter_client(monkeypatch):
     contenu = {"choices": [{"message": {"content": BONNE_REPONSE}}]}
-    monkeypatch.setattr("tp2.utils.lib.requests.post", lambda *a, **k: FausseReponse(200, contenu))
+    monkeypatch.setattr("tp2.utils.llm.requests.post", lambda *a, **k: FausseReponse(200, contenu))
     assert OpenRouterClient("sk-test").complete("s", "t") == BONNE_REPONSE
-    monkeypatch.setattr("tp2.utils.lib.requests.post", lambda *a, **k: FausseReponse(429, {}))
+    monkeypatch.setattr("tp2.utils.llm.requests.post", lambda *a, **k: FausseReponse(429, {}))
     with pytest.raises(RuntimeError):  # quota dépassé : l'erreur remonte, llm_triage passe au secours
         OpenRouterClient("sk-test").complete("s", "t")

@@ -48,7 +48,7 @@ MITRE = {
 
 
 def shannon_entropy(donee: bytes) -> float:
-    """Calcule l'entropie de Shannon en bits par octet (0 à 8)."""
+    """Calcule l'shannon_entropy de Shannon en bits par octet (0 à 8)."""
     if not donee:
         return 0.0
     total = len(donee)
@@ -99,7 +99,7 @@ def extraire_chaines(data: bytes) -> tuple[list[str], list[str]]:
             if fin - debut < 16:
                 cotes = [zone[max(0, debut - 256) : debut], zone[fin : fin + 256]]
                 cotes = [c for c in cotes if len(c) >= 128]
-                if cotes and all(entropie(c) > 0.85 * math.log2(len(c)) for c in cotes):
+                if cotes and all(shannon_entropy(c) > 0.85 * math.log2(len(c)) for c in cotes):
                     continue
             trouvees.append((debut, m.group().decode(encodage)))
     trouvees.sort()
@@ -198,7 +198,7 @@ def analyser_comportement(data: bytes, iocs: dict, imports: list[str], entropie_
     if any("cmd.exe" in t.lower() or "/bin/sh" in t for t in propres):
         capacites.append("shell")
     persistance = any(re.search(r"\\Run(?:Once)?\\", cle, re.IGNORECASE) for cle in iocs["registry"])
-    packe = max(entropie_fichier, entropie(zone_utile(data))) >= 7.2
+    packe = max(entropie_fichier, shannon_entropy(zone_utile(data))) >= 7.2
 
     mitre = {MITRE[c] for c in capacites if c in MITRE}
     if persistance:
