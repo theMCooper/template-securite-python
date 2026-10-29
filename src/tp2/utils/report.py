@@ -16,9 +16,13 @@ def generate_report(rapport: dict, dossier: str | Path, infos: dict) -> Path:
     """Écrit <sha256>.json (toujours en premier) puis <sha256>.pdf. Renvoie le chemin du JSON."""
     dossier = Path(dossier)
     dossier.mkdir(parents=True, exist_ok=True)
+    contenu = json.dumps(rapport, indent=2, ensure_ascii=False)
     chemin_json = dossier / f"{rapport['sha256']}.json"
-    with open(chemin_json, "w", encoding="utf-8") as fichier:
-        json.dump(rapport, fichier, indent=2, ensure_ascii=False)
+    chemin_json.write_text(contenu, encoding="utf-8")
+    nom = infos.get("nom")
+    if nom:
+        for variante in {nom, Path(nom).stem}:
+            (dossier / f"{variante}.triage.json").write_text(contenu, encoding="utf-8")
 
     try:
         pdf = FPDF()

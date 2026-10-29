@@ -45,15 +45,5 @@ def test_main_hors_reseau(tmp_path, echantillon, monkeypatch):
     code = main(
         ["--samples", str(tmp_path / "samples"), "--rules", str(tmp_path), "--out", str(sortie)]
     )
-    assert code == 0 and len(list(sortie.glob("*.json"))) == 2
-
-def test_main_hors_reseau(tmp_path, echantillon, monkeypatch):
-    monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)  # pas de clé : verdict de secours
-    (tmp_path / "samples").mkdir()
-    (tmp_path / "samples" / "a.bin").write_bytes(echantillon)
-    (tmp_path / "samples" / "b.bin").write_bytes(b"")  # fichier vide : ne doit rien casser
-    sortie = tmp_path / "out"
-    code = main(
-        ["--samples", str(tmp_path / "samples"), "--rules", str(tmp_path), "--out", str(sortie)]
-    )
-    assert code == 0 and len(list(sortie.glob("*.json"))) == 2
+    assert code == 0
+    assert (sortie / "a.bin.triage.json").exists() and (sortie / "a.triage.json").exists()

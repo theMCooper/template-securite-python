@@ -23,7 +23,7 @@ from tp2.utils.lib import (
     parse_binary,
     score_final,
     yara_scan,
-    zone_utile,
+    zone_utile, detect_file_type,
 )
 
 IOCS_VIDES = {"domains": [], "ips": [], "urls": [], "mutex": [], "registry": []}
@@ -219,3 +219,18 @@ def test_openrouter_client(monkeypatch):
     monkeypatch.setattr("tp2.utils.llm.requests.post", lambda *a, **k: FausseReponse(429, {}))
     with pytest.raises(RuntimeError):  # quota dépassé : l'erreur remonte, llm_triage passe au secours
         OpenRouterClient("sk-test").complete("s", "t")
+
+def test_detect_file_type(monkeypatch):
+    assert "ELF" in detect_file_type(b"\x7fELF\x02\x01\x01" + b"\x00" * 60)
+
+    def panne(_):
+        raise RuntimeError("libmagic cassé")
+
+    monkeypatch.setattr("tp2.utils.lib.magic.from_buffer", panne)
+    assert detect_file_type(b"abc") == "unknown"
+
+
+def test_llmclient_complete():
+    with pytest.raises(TypeError):  # classe abstraite : impossible de l'instancier seule
+        LLMClient()
+    assert LLMClient.complete(FauxClient(), "s", "t") is None  # la méthode abstraite ne fait rien
