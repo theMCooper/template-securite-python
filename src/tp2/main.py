@@ -76,6 +76,7 @@ def main(argv: list[str] | None = None) -> int:
             logger.info(f"{chemin.name} : score {rapport['score']}, famille {rapport['family_guess']}")
         except Exception:
             logger.exception(f"Analyse impossible pour {chemin.name}")
+    return 0
 
 
 if __name__ == "__main__":

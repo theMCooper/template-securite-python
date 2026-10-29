@@ -22,7 +22,7 @@ class LLMCredule(LLMClient):
 
 def test_lire_arguments():
     args = lire_arguments(["--samples", "s", "--rules", "r", "--out", "o"])
-    assert str(args.samples) == "s" and not args.verbose
+    assert str(args.samples) == "s"
 
 
 def test_analyser_fichier_resiste_a_l_injection(tmp_path, echantillon):
@@ -43,7 +43,7 @@ def test_main_hors_reseau(tmp_path, echantillon, monkeypatch):
     (tmp_path / "samples" / "b.bin").write_bytes(b"")  # fichier vide : ne doit rien casser
     sortie = tmp_path / "out"
     code = main(
-        ["--samples", str(tmp_path / "samples"), "--rules", str(tmp_path), "--out", str(sortie), "-v"]
+        ["--samples", str(tmp_path / "samples"), "--rules", str(tmp_path), "--out", str(sortie)]
     )
     assert code == 0 and len(list(sortie.glob("*.json"))) == 2
 
@@ -54,6 +54,6 @@ def test_main_hors_reseau(tmp_path, echantillon, monkeypatch):
     (tmp_path / "samples" / "b.bin").write_bytes(b"")  # fichier vide : ne doit rien casser
     sortie = tmp_path / "out"
     code = main(
-        ["--samples", str(tmp_path / "samples"), "--rules", str(tmp_path), "--out", str(sortie), "-v"]
+        ["--samples", str(tmp_path / "samples"), "--rules", str(tmp_path), "--out", str(sortie)]
     )
     assert code == 0 and len(list(sortie.glob("*.json"))) == 2

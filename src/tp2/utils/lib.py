@@ -3,8 +3,16 @@ import ipaddress
 import math
 import re
 from collections import Counter
+from pathlib import Path
+from urllib.parse import urlsplit
+
+import lief
 import magic
+import yara
+
 from tp2.utils.config import logger
+
+lief.logging.disable()  # LIEF affiche beaucoup d'erreurs sur les fichiers non exécutables
 
 ASCII_RE = re.compile(rb"[\x20-\x7e]{4,}")
 UTF16_RE = re.compile(rb"(?:[\x20-\x7e]\x00){4,}")
@@ -108,11 +116,12 @@ def extraire_chaines(data: bytes) -> tuple[list[str], list[str]]:
     return propres, injections
 
 def ip_valide(texte: str) -> bool:
-    """Vrai si l'ip existe et est valide"""
+    """Vrai si l'IP existe et peut être un C2 (pas loopback, multicast, réservée...)."""
     try:
-        ip = ipaddress(texte)
-    except ValueError:
-        return not (ip.is_loopback or ip.is_unspecified or ip.is_multicast or ip.is_reserved or ip.is_link_local)
+        ip = ipaddress.ip_address(texte)  # ip_address : la fonction du module ipaddress
+    except ValueError:  # 999.1.1.1 n'est pas une IP
+        return False
+    return not (ip.is_loopback or ip.is_unspecified or ip.is_multicast or ip.is_reserved or ip.is_link_local)
 
 def extract_iocs(data: bytes) -> dict:
     """Extrait domaines, IP, URL, mutex et clés de registre des chaînes propres."""
