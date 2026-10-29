@@ -139,4 +139,15 @@ def extract_iocs(data: bytes) -> dict:
         iocs["registry"].update(cle.rstrip(PONCTUATION) for cle in REGISTRE_RE.findall(texte))
     return {cle: sorted(valeurs) for cle, valeurs in iocs.items()}
 
+def extract_flag(data: bytes) -> str | None:
+    """Renvoie le vrai flag, ou None en cas de doute."""
+    propres, _ = extraire_chaines(data)
+    candidats = {m.group(1) for t in propres if (m := FLAG_SEUL_RE.fullmatch(t))}
+    if not candidats:
+        candidats = {flag for t in propres for flag in FLAG_RE.findall(t)}
+    if len(candidats) == 1:
+        return candidats.pop()
+    logger.warning(f"Flag absent ou ambigu ({len(candidats)} candidats)")
+    return None
+
 
