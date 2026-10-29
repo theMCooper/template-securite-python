@@ -34,6 +34,8 @@ def get_file_metadata(donee: bytes) -> dict:
     }
 
 """partie 2 extract loc extract_iocs(data)"""
+ASCII_RE = re.compile(rb"[\x20-\x7e]{4,}")
+UTF16_RE = re.compile(rb"(?:[\x20-\x7e]\x00){4,}")
 URL_RE = re.compile(r"\b(?:https?|ftp)://[^\s\"'<>\x00]+", re.IGNORECASE)
 DOMAIN_RE = re.compile(r"(?<![\w@.-])(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z][a-z0-9-]{0,61}[a-z0-9](?![\w-])",re.IGNORECASE,)
 IP_RE = re.compile(r"(?<![\d.])(?:\d{1,3}\.){3}\d{1,3}(?!\.?\d)")
@@ -46,4 +48,21 @@ FLAG_ANY_RE = re.compile(r"ESGI\{[A-Za-z0-9_\-]{1,128}\}")
 FILE_EXTENSIONS = frozenset("dll exe sys so php html htm js txt log ini cfg dat bin tmp bat cmd ps1 vbs py c h o debug jpg png gif zip pdf doc pdb".split())
 BENIGN_DOMAINS = ("gnu.org", "translationproject.org")
 TRAILING_JUNK = ".,;:)]}'\" "
+INJECTION_RE = re.compile(
+    r"ignore\s+(?:all\s+|the\s+)?(?:previous|prior|above)\s+(?:instructions?|prompts?)"
+    r"|ignore[rz]?\s+(?:les\s+)?(?:consignes|instructions)\s+pr[ée]c[ée]dentes"
+    r"|\b(?:AI|LLM|assistant|model)[\s_-]*(?:instructions?|note|prompt)\b"
+    r"|\bNOTE[\s_-]*TO[\s_-]*(?:AI|LLM)\b"
+    r"|\bmark\s+(?:the|this)\s+(?:sample|file)\s+(?:as\s+)?(?:clean|safe|benign)"
+    r"|\b(?:this|the)\s+(?:file|sample)\s+is\s+(?:clean|safe|benign)"
+    r"|d[ée]clar\w*\s+(?:ce|le)\s+fichier\s+sain"
+    r"|\bdisregard\b|\bhoneypot\b|report\s+only\s+this|<!--",
+    re.IGNORECASE,
+)
 
+IOC_KEYS = ("domains", "ips", "urls", "mutex", "registry")
+
+def extract_iocs(data: bytes) -> dict[str, list[str]]:
+    """Extrait domaines, IP, URL, mutex et clés de registre des chaînes propres."""
+    found: dict[str, set[str]] = {key: set() for key in IOC_KEYS}
+    chaine, _ =split_strings(data);
