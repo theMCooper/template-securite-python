@@ -6,7 +6,6 @@ from collections import Counter
 import magic
 from tp2.utils.config import logger
 
-"""partie 1 avoir les métadonnée du fichier"""
 def shannon_entropy(donee: bytes) -> float:
     """Calcule l'entropie de Shannon en bits par octet (0 à 8)."""
     if not donee:
@@ -190,5 +189,74 @@ def yara_scan(data: bytes, regles: yara.Rules | None) -> list[str]:
     return sorted({m.rule for m in regles.match(data=data, timeout=60)})
 
 
+def analyser_comportement(data: bytes, iocs: dict, imports: list[str], entropie_fichier: float) -> dict:
+    """Déduit capacités, persistance, packing, codes MITRE et famille, sans LLM."""
+    propres, _ = extraire_chaines(data)
+    mots = set(imports) | {mot for t in propres for mot in re.findall(r"\w{3,}", t)}
+    capacites = [
+        cap for cap, apis in API_SUSPECTES.items() if any(m.startswith(api) for m in mots for api in apis)
+    ]
+    if any("cmd.exe" in t.lower() or "/bin/sh" in t for t in propres):
+        capacites.append("shell")
+    persistance = any(re.search(r"\\Run(?:Once)?\\", cle, re.IGNORECASE) for cle in iocs["registry"])
+    packe = max(entropie_fichier, entropie(zone_utile(data))) >= 7.2
 
+    mitre = {MITRE[c] for c in capacites if c in MITRE}
+    if persistance:
+        mitre.add(MITRE["persistance"])
+    if iocs["urls"]:
+        mitre.add(MITRE["web"])
+    if packe:
+        mitre.add(MITRE["packe"])
+
+    if "keylog" in capacites:
+        famille = "keylogger"
+    elif "network" in capacites and ("shell" in capacites or "execute" in capacites):
+        famille = "backdoor"
+    elif "download" in capacites:
+        famille = "dropper"
+    elif packe:
+        famille = "packed"
+    elif iocs["domains"] or iocs["ips"] or iocs["urls"]:
+        famille = "trojan"
+    else:
+        famille = "unknown"
+    return {
+        "capacites": sorted(capacites),
+        "persistance": persistance,
+        "packe": packe,
+        "mitre": sorted(mitre),
+        "famille": famille,
+    }
+
+
+def calculer_score(iocs: dict, yara_matches: list[str], comportement: dict, injections: list[str]) -> int:
+    """Score de 0 à 10 calculé par le code, à partir de preuves fiables."""
+    score = 0
+    if yara_matches:
+        score += 3 + min(2, len(yara_matches) - 1)
+    if iocs["domains"] or iocs["ips"] or iocs["urls"]:
+        score += 2
+
+    if comportement["persistance"]:
+        score += 1
+    if iocs["mutex"]:
+        score += 1
+    if comportement["capacites"]:
+        score += 1
+    if comportement["packe"]:
+        score += 1
+    if injections:
+        score += 2
+    return min(score, 10)
+
+
+def score_final(score_code: int, score_llm: int, source: str, injections: list[str]) -> int:
+    """Le code décide : le LLM ne bouge le score que de ±2, et jamais vers le bas si injection."""
+    if source == "fallback":
+        return score_code
+    final = score_code + max(-2, min(2, score_llm - score_code))
+    if injections:
+        final = max(final, score_code)
+    return max(0, min(10, final))
 
