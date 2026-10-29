@@ -150,4 +150,22 @@ def extract_flag(data: bytes) -> str | None:
     logger.warning(f"Flag absent ou ambigu ({len(candidats)} candidats)")
     return None
 
+def parse_binary(path: str | Path) -> dict:
+    """Renvoie format, imports, exports et sections d'un PE/ELF avec LIEF (listes vides sinon)."""
+    resultat = {"format": "unknown", "imports": [], "exports": [], "sections": []}
+    try:
+        binaire = lief.parse(str(path))
+    except Exception:
+        binaire = None
+    if binaire is None:
+        return resultat
+    resultat["format"] = str(binaire.format).split(".")[-1]  # "FORMATS.ELF" -> "ELF"
+    resultat["imports"] = sorted({f.name for f in binaire.imported_functions if f.name})
+    resultat["exports"] = sorted({f.name for f in binaire.exported_functions if f.name})
+    resultat["sections"] = [
+        {"name": s.name, "size": s.size, "entropy": round(s.entropy, 2)} for s in binaire.sections
+    ]
+    return resultat
+
+
 
