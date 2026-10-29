@@ -75,8 +75,7 @@ def main(argv: list[str] | None = None) -> int:
             generate_report(rapport, args.out, infos)
             logger.info(f"{chemin.name} : score {rapport['score']}, famille {rapport['family_guess']}")
         except Exception:
-            logger.exception(f"Analyse impossible pour {chemin.name}")  # on passe au fichier suivant
-    return 0
+            logger.exception(f"Analyse impossible pour {chemin.name}")
 
 
 if __name__ == "__main__":
