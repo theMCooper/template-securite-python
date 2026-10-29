@@ -7,6 +7,7 @@ readme = "README.md"
 packages = [
   { include = "src" },
   { include = "tp1", from = "src" },
+  { include = "tp2", from = "src" },
   { include = "tp3", from = "src" },
 ]
 
@@ -20,6 +21,10 @@ pytest = "^8.3.5"
 capstone = "^5.0.6"
 python-dotenv = "^1.2.1"
 matplotlib = "^3.11.2"
+python-magic = "^0.4.27"
+lief = "^1.0.0"
+yara-python = "^4.5.4"
+pydantic = "^2.14.1"
 
 [build-system]
 requires = ["poetry-core"]
@@ -27,4 +32,5 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
 tp1 = "tp1.main:main"
+tp2 = "tp2.main:main"
 tp3 = "tp3.main:main"
