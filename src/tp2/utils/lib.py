@@ -167,5 +167,28 @@ def parse_binary(path: str | Path) -> dict:
     ]
     return resultat
 
+def charger_regles(dossier: str | Path) -> yara.Rules | None:
+    """Compile toutes les règles valides du dossier ; une règle cassée est ignorée."""
+    valides = {}
+    for i, fichier in enumerate(sorted(Path(dossier).glob("*.yar*"))):
+        try:
+            yara.compile(filepath=str(fichier))  # test du fichier seul
+        except yara.Error as erreur:
+            logger.warning(f"Règle ignorée {fichier.name} : {erreur}")
+            continue
+        valides[f"ns{i}"] = str(fichier)  # un espace de noms par fichier : pas de conflit de noms
+    if not valides:
+        logger.warning("Aucune règle YARA valide")
+        return None
+    return yara.compile(filepaths=valides)
+
+
+def yara_scan(data: bytes, regles: yara.Rules | None) -> list[str]:
+    """Renvoie les noms des règles YARA qui correspondent au fichier."""
+    if regles is None:
+        return []
+    return sorted({m.rule for m in regles.match(data=data, timeout=60)})
+
+
 
 
