@@ -1,4 +1,5 @@
 import hashlib
+import ipaddress
 import math
 import re
 from collections import Counter
@@ -90,7 +91,6 @@ def zone_utile(data: bytes) -> bytes:
 
 def extraire_chaines(data: bytes) -> tuple[list[str], list[str]]:
     """Extrait les chaînes de la zone utile et les sépare en (propres, injections).
-
     Une chaîne courte entourée de données aléatoires des deux côtés est du hasard : on l'écarte.
     """
     zone = zone_utile(data)
@@ -108,3 +108,13 @@ def extraire_chaines(data: bytes) -> tuple[list[str], list[str]]:
     propres = [t for _, t in trouvees if not INJECTION_RE.search(t)]
     injections = [t for _, t in trouvees if INJECTION_RE.search(t)]
     return propres, injections
+
+def ip_valide(texte: str) -> bool:
+    """Vrai si l'ip existe et est valide"""
+    try:
+        ip = ipaddress(texte)
+    except ValueError:
+        return not (ip.is_loopback or ip.is_unspecified or ip.is_multicast or ip.is_reserved or ip.is_link_local)
+
+
+
